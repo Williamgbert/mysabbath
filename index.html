@@ -66,7 +66,9 @@
                 </svg>
             </div>
             <h2 class="font-heading text-xl font-semibold mb-2">Next Sabbath</h2>
-            <p class="text-gray-600 mb-4" id="next-sabbath-date">Saturday, December 21st</p>
+            <p class="text-gray-600 mb-2" id="next-sabbath-date">Saturday, December 21st</p>
+            
+
             <div class="flex justify-center mb-4">
                 <div class="relative w-20 h-20">
                     <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
@@ -293,9 +295,29 @@
         </div>
 
         <!-- Mark Sabbath Complete -->
-        <div class="bg-white rounded-lg shadow-md p-4 text-center">
-            <h3 class="font-heading font-semibold mb-3">Complete This Sabbath</h3>
-            <p class="text-sm text-gray-600 mb-4">Mark your Sabbath as complete when you've finished your planned rest and reflection.</p>
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <h3 class="font-heading font-semibold mb-3 text-center">Complete This Sabbath</h3>
+            <p class="text-sm text-gray-600 mb-4 text-center">Check off your planned activities as you complete them during your Sabbath.</p>
+            
+            <!-- Planned Activities Completion -->
+            <div class="mb-4">
+                <h4 class="font-medium mb-3">Planned Activities</h4>
+                <div class="grid grid-cols-1 gap-2" id="completion-activities">
+                    <!-- Activities will be populated from saved plan -->
+                </div>
+            </div>
+            
+            <!-- Progress indicator -->
+            <div class="mb-4">
+                <div class="flex justify-between items-center text-sm mb-2">
+                    <span class="text-gray-600">Activities Progress:</span>
+                    <span class="font-semibold text-accent" id="activities-progress">0/0 Complete</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-accent h-2 rounded-full transition-all duration-300" id="activities-progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            
             <button class="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors" onclick="completeSabbath()">
                 ✅ Mark Sabbath Complete
             </button>
@@ -340,7 +362,87 @@
             loadSavedData();
             generateCalendar();
             loadRandomScripture();
+            loadPlannedActivities();
         });
+
+        // Update activities progress
+        function updateActivitiesProgress() {
+            const checkboxes = document.querySelectorAll('.completion-activity-checkbox');
+            const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const total = checkboxes.length;
+            const percentage = total > 0 ? (completed / total) * 100 : 0;
+            
+            document.getElementById('activities-progress').textContent = `${completed}/${total} Complete`;
+            document.getElementById('activities-progress-bar').style.width = `${percentage}%`;
+            
+            // Save completion state
+            const completionState = {};
+            checkboxes.forEach(cb => {
+                completionState[cb.value] = cb.checked;
+            });
+            localStorage.setItem('activityCompletion', JSON.stringify(completionState));
+            
+            // Update complete sabbath button state
+            const completeButton = document.querySelector('button[onclick="completeSabbath()"]');
+            if (completed === total && total > 0) {
+                completeButton.classList.remove('bg-green-500', 'hover:bg-green-600');
+                completeButton.classList.add('bg-green-600', 'hover:bg-green-700');
+                completeButton.innerHTML = '🎉 All Activities Complete - Mark Sabbath Done!';
+            } else {
+                completeButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                completeButton.classList.add('bg-green-500', 'hover:bg-green-600');
+                completeButton.innerHTML = '✅ Mark Sabbath Complete';
+            }
+        }
+
+        // Load planned activities into completion section
+        function loadPlannedActivities() {
+            const savedPlan = localStorage.getItem('sabbathPlan');
+            const completionContainer = document.getElementById('completion-activities');
+            
+            if (savedPlan) {
+                const plan = JSON.parse(savedPlan);
+                const activities = plan.activities || [];
+                
+                const activityLabels = {
+                    prayer: '🙏 Prayer',
+                    scripture: '📖 Scripture',
+                    family: '👨‍👩‍👧‍👦 Family Time',
+                    rest: '😴 Rest',
+                    reflection: '💭 Reflection',
+                    nature: '🌿 Nature',
+                    worship: '🎵 Worship',
+                    creative: '🎨 Creative'
+                };
+                
+                completionContainer.innerHTML = '';
+                
+                if (activities.length === 0) {
+                    completionContainer.innerHTML = '<p class="text-sm text-gray-500 italic">No activities planned. Go to Sabbath Planning to add activities.</p>';
+                } else {
+                    activities.forEach(activity => {
+                        const activityElement = document.createElement('label');
+                        activityElement.className = 'flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer';
+                        activityElement.innerHTML = `
+                            <input type="checkbox" class="completion-activity-checkbox w-4 h-4 text-accent rounded" value="${activity}" onchange="updateActivitiesProgress()">
+                            <span class="text-sm">${activityLabels[activity] || activity}</span>
+                        `;
+                        completionContainer.appendChild(activityElement);
+                    });
+                }
+                
+                // Load saved completion state
+                const savedCompletion = localStorage.getItem('activityCompletion');
+                if (savedCompletion) {
+                    const completion = JSON.parse(savedCompletion);
+                    document.querySelectorAll('.completion-activity-checkbox').forEach(cb => {
+                        cb.checked = completion[cb.value] || false;
+                    });
+                }
+                
+                updateActivitiesProgress();
+            }
+        }
 
         // Accordion functionality
         function toggleAccordion(section) {
@@ -374,6 +476,9 @@
             
             const plan = { day, time, activities, reminder };
             localStorage.setItem('sabbathPlan', JSON.stringify(plan));
+            
+            // Refresh the completion activities section
+            loadPlannedActivities();
             
             showNotification('Sabbath plan saved successfully!');
         }
@@ -474,9 +579,16 @@
                 completions.push(today);
                 localStorage.setItem('sabbathCompletions', JSON.stringify(completions));
                 
+                // Reset activity completion for next Sabbath
+                document.querySelectorAll('.completion-activity-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                localStorage.removeItem('activityCompletion');
+                updateActivitiesProgress();
+                
                 updateStreak();
                 generateCalendar();
-                showNotification('Sabbath marked as complete! 🎉');
+                showNotification('Sabbath marked as complete! 🎉 Ready for next week!');
             } else {
                 showNotification('Sabbath already marked complete for today.');
             }
@@ -551,6 +663,7 @@
 
         // Load saved data
         function loadSavedData() {
+            
             // Load sabbath plan
             const savedPlan = localStorage.getItem('sabbathPlan');
             if (savedPlan) {
@@ -627,5 +740,5 @@
         // Initialize next Sabbath date
         updateNextSabbathDate();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9833b1e0c3b0bd12',t:'MTc1ODU2Mzk1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9833c01c800b53b5',t:'MTc1ODU2NDUzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
