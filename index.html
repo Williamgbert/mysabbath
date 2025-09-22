@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MySabbath - Intentional Rest & Reflection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#383f94',
+                        accent: '#00adee'
+                    },
+                    fontFamily: {
+                        'heading': ['Arial', 'Helvetica', 'sans-serif'],
+                        'body': ['Proxima Nova', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        .font-body { font-family: 'Inter', system-ui, sans-serif; }
+        .font-heading { font-family: 'Arial', 'Helvetica', sans-serif; }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-content.active {
+            max-height: 1000px;
+        }
+        
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        .calendar-day:hover {
+            transform: scale(1.05);
+        }
+        
+        .progress-ring {
+            transition: stroke-dasharray 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-body text-gray-800 min-h-screen">
+    <!-- Header -->
+    <header class="bg-primary text-white p-4 shadow-lg">
+        <div class="max-w-md mx-auto">
+            <h1 class="font-heading text-2xl font-bold text-center">MySabbath</h1>
+            <p class="text-center text-blue-100 text-sm mt-1">Intentional Rest & Reflection</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto p-4 space-y-6">
+        <!-- Current Sabbath Status -->
+        <div class="bg-white rounded-lg shadow-md p-6 text-center">
+            <div class="mb-4">
+                <svg class="w-16 h-16 mx-auto text-primary" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
+            <h2 class="font-heading text-xl font-semibold mb-2">Next Sabbath</h2>
+            <p class="text-gray-600 mb-4" id="next-sabbath-date">Saturday, December 21st</p>
+            <div class="flex justify-center mb-4">
+                <div class="relative w-20 h-20">
+                    <svg class="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-gray-200" stroke="currentColor" stroke-width="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                        <path class="text-accent progress-ring" stroke="currentColor" stroke-width="3" fill="none" stroke-dasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-sm font-semibold" id="streak-count">3</span>
+                    </div>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">Current streak: <span id="streak-text">3 weeks</span></p>
+        </div>
+
+        <!-- Planning Module -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <button class="accordion-trigger w-full p-4 text-left bg-primary text-white font-semibold flex justify-between items-center" onclick="toggleAccordion('planning')">
+                <span>📅 Sabbath Planning</span>
+                <svg class="w-5 h-5 transform transition-transform" id="planning-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div class="accordion-content" id="planning-content">
+                <div class="p-4 space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Sabbath Day & Time</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <select class="border rounded-lg p-2 text-sm" id="sabbath-day">
+                                <option value="saturday">Saturday</option>
+                                <option value="sunday">Sunday</option>
+                                <option value="friday">Friday</option>
+                            </select>
+                            <input type="time" class="border rounded-lg p-2 text-sm" id="sabbath-time" value="18:00">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Planned Activities</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="prayer" checked>
+                                <span>🙏 Prayer</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="scripture">
+                                <span>📖 Scripture</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="family" checked>
+                                <span>👨‍👩‍👧‍👦 Family Time</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="rest">
+                                <span>😴 Rest</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="reflection" checked>
+                                <span>💭 Reflection</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="nature">
+                                <span>🌿 Nature</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="worship">
+                                <span>🎵 Worship</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-sm">
+                                <input type="checkbox" class="activity-checkbox" value="creative">
+                                <span>🎨 Creative</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center space-x-2 text-sm">
+                            <input type="checkbox" id="reminder-enabled">
+                            <span>Set preparation reminder (1 hour before)</span>
+                        </label>
+                    </div>
+                    
+                    <button class="w-full bg-accent text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors" onclick="savePlan()">
+                        Save Sabbath Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripture & Reflection -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <button class="accordion-trigger w-full p-4 text-left bg-primary text-white font-semibold flex justify-between items-center" onclick="toggleAccordion('scripture')">
+                <span>📜 Today's Scripture</span>
+                <svg class="w-5 h-5 transform transition-transform" id="scripture-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div class="accordion-content active" id="scripture-content">
+                <div class="p-4">
+                    <div class="bg-blue-50 p-4 rounded-lg mb-4">
+                        <p class="text-sm italic mb-2" id="daily-verse">
+                            "Remember the Sabbath day by keeping it holy. Six days you shall labor and do all your work, but the seventh day is a sabbath to the Lord your God."
+                        </p>
+                        <p class="text-xs text-gray-600" id="verse-reference">Exodus 20:8-10</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-medium mb-2">Reflection Prompt</h4>
+                        <p class="text-sm text-gray-700" id="reflection-prompt">
+                            How can you create sacred space in your life this week? What activities or thoughts need to be set aside to make room for rest and connection with God?
+                        </p>
+                    </div>
+                    
+                    <button class="text-accent text-sm font-medium hover:underline" onclick="loadNewScripture()">
+                        🔄 New Scripture & Prompt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Habit Tracker -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <button class="accordion-trigger w-full p-4 text-left bg-primary text-white font-semibold flex justify-between items-center" onclick="toggleAccordion('habits')">
+                <span>✅ Sabbath Habits</span>
+                <svg class="w-5 h-5 transform transition-transform" id="habits-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div class="accordion-content" id="habits-content">
+                <div class="p-4">
+                    <div class="space-y-3 mb-4">
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-sm">Morning prayer & gratitude</span>
+                            <button class="w-6 h-6 rounded-full border-2 border-accent hover:bg-accent hover:text-white transition-colors" onclick="toggleHabit(this)">
+                                ✓
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-sm">Scripture meditation</span>
+                            <button class="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-accent transition-colors" onclick="toggleHabit(this)">
+                            </button>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <span class="text-sm">Digital device rest</span>
+                            <button class="w-6 h-6 rounded-full border-2 border-accent bg-accent text-white" onclick="toggleHabit(this)">
+                                ✓
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex space-x-2 mb-2">
+                            <input type="text" placeholder="Add new habit..." class="flex-1 border rounded-lg p-2 text-sm" id="new-habit-input">
+                            <button class="bg-accent text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors" onclick="addHabit()">
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Calendar -->
+        <div class="bg-white rounded-lg shadow-md p-4">
+            <h3 class="font-heading font-semibold mb-4 text-center">Sabbath Calendar</h3>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs mb-2">
+                <div class="font-medium text-gray-500">S</div>
+                <div class="font-medium text-gray-500">M</div>
+                <div class="font-medium text-gray-500">T</div>
+                <div class="font-medium text-gray-500">W</div>
+                <div class="font-medium text-gray-500">T</div>
+                <div class="font-medium text-gray-500">F</div>
+                <div class="font-medium text-gray-500">S</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1" id="calendar-grid">
+                <!-- Calendar days will be generated by JavaScript -->
+            </div>
+            <div class="flex justify-center space-x-4 mt-4 text-xs">
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-accent rounded-full"></div>
+                    <span>Completed</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                    <span>Partial</span>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <div class="w-3 h-3 bg-gray-200 rounded-full"></div>
+                    <span>Missed</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal & Reflection -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <button class="accordion-trigger w-full p-4 text-left bg-primary text-white font-semibold flex justify-between items-center" onclick="toggleAccordion('journal')">
+                <span>📝 Sabbath Journal</span>
+                <svg class="w-5 h-5 transform transition-transform" id="journal-arrow" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M7 10l5 5 5-5z"/>
+                </svg>
+            </button>
+            <div class="accordion-content" id="journal-content">
+                <div class="p-4">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">How was your last Sabbath?</label>
+                        <textarea class="w-full border rounded-lg p-3 text-sm h-24 resize-none" placeholder="Reflect on your Sabbath experience..." id="journal-entry"></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium mb-2">Rate your Sabbath rest (1-5)</label>
+                        <div class="flex space-x-2">
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 text-sm hover:border-accent transition-colors rating-btn" data-rating="1">1</button>
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 text-sm hover:border-accent transition-colors rating-btn" data-rating="2">2</button>
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 text-sm hover:border-accent transition-colors rating-btn" data-rating="3">3</button>
+                            <button class="w-8 h-8 rounded-full border-2 border-accent bg-accent text-white text-sm rating-btn" data-rating="4">4</button>
+                            <button class="w-8 h-8 rounded-full border-2 border-gray-300 text-sm hover:border-accent transition-colors rating-btn" data-rating="5">5</button>
+                        </div>
+                    </div>
+                    
+                    <button class="w-full bg-accent text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition-colors" onclick="saveJournalEntry()">
+                        Save Reflection
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mark Sabbath Complete -->
+        <div class="bg-white rounded-lg shadow-md p-4 text-center">
+            <h3 class="font-heading font-semibold mb-3">Complete This Sabbath</h3>
+            <p class="text-sm text-gray-600 mb-4">Mark your Sabbath as complete when you've finished your planned rest and reflection.</p>
+            <button class="w-full bg-green-500 text-white py-3 rounded-lg font-medium hover:bg-green-600 transition-colors" onclick="completeSabbath()">
+                ✅ Mark Sabbath Complete
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 p-4 mt-8">
+        <div class="max-w-md mx-auto text-center text-xs text-gray-500">
+            <p>MySabbath - Part of the MyFormation spiritual growth suite</p>
+            <p class="mt-1">© 2024 - Designed for intentional rest and reflection</p>
+        </div>
+    </footer>
+
+    <script>
+        // Scripture and reflection data
+        const scriptures = [
+            {
+                verse: "Remember the Sabbath day by keeping it holy. Six days you shall labor and do all your work, but the seventh day is a sabbath to the Lord your God.",
+                reference: "Exodus 20:8-10",
+                prompt: "How can you create sacred space in your life this week? What activities or thoughts need to be set aside to make room for rest and connection with God?"
+            },
+            {
+                verse: "By the seventh day God had finished the work he had been doing; so on the seventh day he rested from all his work. Then God blessed the seventh day and made it holy.",
+                reference: "Genesis 2:2-3",
+                prompt: "God rested not from exhaustion, but to model rhythm for us. How can you embrace rest as a spiritual discipline rather than just physical recovery?"
+            },
+            {
+                verse: "Then he said to them, 'The Sabbath was made for man, not man for the Sabbath.'",
+                reference: "Mark 2:27",
+                prompt: "Jesus reminds us that Sabbath is a gift, not a burden. How can you receive Sabbath as God's loving provision for your soul?"
+            },
+            {
+                verse: "Come to me, all you who are weary and burdened, and I will give you rest. Take my yoke upon you and learn from me, for I am gentle and humble in heart, and you will find rest for your souls.",
+                reference: "Matthew 11:28-29",
+                prompt: "What burdens are you carrying that you need to lay down during Sabbath? How can you find soul-rest in Christ's presence?"
+            }
+        ];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            generateCalendar();
+            loadRandomScripture();
+        });
+
+        // Accordion functionality
+        function toggleAccordion(section) {
+            const content = document.getElementById(section + '-content');
+            const arrow = document.getElementById(section + '-arrow');
+            
+            content.classList.toggle('active');
+            arrow.classList.toggle('rotate-180');
+        }
+
+        // Load random scripture
+        function loadRandomScripture() {
+            const randomIndex = Math.floor(Math.random() * scriptures.length);
+            const scripture = scriptures[randomIndex];
+            
+            document.getElementById('daily-verse').textContent = scripture.verse;
+            document.getElementById('verse-reference').textContent = scripture.reference;
+            document.getElementById('reflection-prompt').textContent = scripture.prompt;
+        }
+
+        function loadNewScripture() {
+            loadRandomScripture();
+        }
+
+        // Save sabbath plan
+        function savePlan() {
+            const day = document.getElementById('sabbath-day').value;
+            const time = document.getElementById('sabbath-time').value;
+            const activities = Array.from(document.querySelectorAll('.activity-checkbox:checked')).map(cb => cb.value);
+            const reminder = document.getElementById('reminder-enabled').checked;
+            
+            const plan = { day, time, activities, reminder };
+            localStorage.setItem('sabbathPlan', JSON.stringify(plan));
+            
+            showNotification('Sabbath plan saved successfully!');
+        }
+
+        // Habit management
+        function toggleHabit(button) {
+            if (button.classList.contains('border-accent')) {
+                if (button.classList.contains('bg-accent')) {
+                    // Currently completed, make it unchecked
+                    button.classList.remove('bg-accent', 'text-white');
+                    button.classList.add('border-gray-300');
+                    button.classList.remove('border-accent');
+                    button.innerHTML = '';
+                } else {
+                    // Currently unchecked, make it completed
+                    button.classList.add('bg-accent', 'text-white');
+                    button.innerHTML = '✓';
+                }
+            } else {
+                // Currently unchecked, make it completed
+                button.classList.remove('border-gray-300');
+                button.classList.add('border-accent', 'bg-accent', 'text-white');
+                button.innerHTML = '✓';
+            }
+            
+            saveHabits();
+        }
+
+        function addHabit() {
+            const input = document.getElementById('new-habit-input');
+            const habitText = input.value.trim();
+            
+            if (habitText) {
+                const habitsContainer = document.querySelector('#habits-content .space-y-3');
+                const habitElement = document.createElement('div');
+                habitElement.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                habitElement.innerHTML = `
+                    <span class="text-sm">${habitText}</span>
+                    <button class="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-accent transition-colors" onclick="toggleHabit(this)">
+                    </button>
+                `;
+                
+                habitsContainer.appendChild(habitElement);
+                input.value = '';
+                saveHabits();
+            }
+        }
+
+        function saveHabits() {
+            const habits = Array.from(document.querySelectorAll('#habits-content .space-y-3 > div')).map(div => {
+                const text = div.querySelector('span').textContent;
+                const button = div.querySelector('button');
+                const completed = button.classList.contains('bg-accent');
+                return { text, completed };
+            });
+            
+            localStorage.setItem('sabbathHabits', JSON.stringify(habits));
+        }
+
+        // Journal functionality
+        function saveJournalEntry() {
+            const entry = document.getElementById('journal-entry').value;
+            const rating = document.querySelector('.rating-btn.bg-accent')?.dataset.rating || '0';
+            
+            const journalData = {
+                entry,
+                rating,
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            let journals = JSON.parse(localStorage.getItem('sabbathJournals') || '[]');
+            journals.push(journalData);
+            localStorage.setItem('sabbathJournals', JSON.stringify(journals));
+            
+            document.getElementById('journal-entry').value = '';
+            showNotification('Reflection saved successfully!');
+        }
+
+        // Rating functionality
+        document.querySelectorAll('.rating-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.rating-btn').forEach(b => {
+                    b.classList.remove('bg-accent', 'text-white', 'border-accent');
+                    b.classList.add('border-gray-300');
+                });
+                
+                this.classList.remove('border-gray-300');
+                this.classList.add('border-accent', 'bg-accent', 'text-white');
+            });
+        });
+
+        // Complete Sabbath
+        function completeSabbath() {
+            const today = new Date().toISOString().split('T')[0];
+            let completions = JSON.parse(localStorage.getItem('sabbathCompletions') || '[]');
+            
+            if (!completions.includes(today)) {
+                completions.push(today);
+                localStorage.setItem('sabbathCompletions', JSON.stringify(completions));
+                
+                updateStreak();
+                generateCalendar();
+                showNotification('Sabbath marked as complete! 🎉');
+            } else {
+                showNotification('Sabbath already marked complete for today.');
+            }
+        }
+
+        // Generate calendar
+        function generateCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            const completions = JSON.parse(localStorage.getItem('sabbathCompletions') || '[]');
+            
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dateStr = date.toISOString().split('T')[0];
+                const isCurrentMonth = date.getMonth() === currentMonth;
+                const isCompleted = completions.includes(dateStr);
+                const isToday = dateStr === today.toISOString().split('T')[0];
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = `calendar-day w-8 h-8 rounded-full flex items-center justify-center text-xs cursor-pointer ${
+                    isCurrentMonth ? 'text-gray-800' : 'text-gray-300'
+                } ${isCompleted ? 'bg-accent text-white' : 'hover:bg-gray-100'} ${
+                    isToday ? 'ring-2 ring-primary' : ''
+                }`;
+                dayElement.textContent = date.getDate();
+                
+                grid.appendChild(dayElement);
+            }
+        }
+
+        // Update streak
+        function updateStreak() {
+            const completions = JSON.parse(localStorage.getItem('sabbathCompletions') || '[]');
+            const sortedDates = completions.sort().reverse();
+            
+            let streak = 0;
+            const today = new Date();
+            
+            for (let i = 0; i < sortedDates.length; i++) {
+                const date = new Date(sortedDates[i]);
+                const daysDiff = Math.floor((today - date) / (1000 * 60 * 60 * 24));
+                
+                if (daysDiff === i * 7) {
+                    streak++;
+                } else {
+                    break;
+                }
+            }
+            
+            document.getElementById('streak-count').textContent = streak;
+            document.getElementById('streak-text').textContent = `${streak} week${streak !== 1 ? 's' : ''}`;
+            
+            // Update progress ring
+            const progressRing = document.querySelector('.progress-ring');
+            const circumference = 2 * Math.PI * 15.9155;
+            const progress = Math.min(streak / 12, 1); // Max 12 weeks for full circle
+            const dashArray = `${progress * circumference}, ${circumference}`;
+            progressRing.style.strokeDasharray = dashArray;
+        }
+
+        // Load saved data
+        function loadSavedData() {
+            // Load sabbath plan
+            const savedPlan = localStorage.getItem('sabbathPlan');
+            if (savedPlan) {
+                const plan = JSON.parse(savedPlan);
+                document.getElementById('sabbath-day').value = plan.day || 'saturday';
+                document.getElementById('sabbath-time').value = plan.time || '18:00';
+                document.getElementById('reminder-enabled').checked = plan.reminder || false;
+                
+                document.querySelectorAll('.activity-checkbox').forEach(cb => {
+                    cb.checked = plan.activities?.includes(cb.value) || false;
+                });
+            }
+            
+            // Load habits
+            const savedHabits = localStorage.getItem('sabbathHabits');
+            if (savedHabits) {
+                const habits = JSON.parse(savedHabits);
+                const container = document.querySelector('#habits-content .space-y-3');
+                
+                // Clear default habits and rebuild from saved data
+                container.innerHTML = '';
+                habits.forEach(habit => {
+                    const habitElement = document.createElement('div');
+                    habitElement.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
+                    habitElement.innerHTML = `
+                        <span class="text-sm">${habit.text}</span>
+                        <button class="w-6 h-6 rounded-full border-2 ${
+                            habit.completed 
+                                ? 'border-accent bg-accent text-white' 
+                                : 'border-gray-300 hover:border-accent'
+                        } transition-colors" onclick="toggleHabit(this)">
+                            ${habit.completed ? '✓' : ''}
+                        </button>
+                    `;
+                    container.appendChild(habitElement);
+                });
+            }
+            
+            updateStreak();
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Update next Sabbath date
+        function updateNextSabbathDate() {
+            const plan = JSON.parse(localStorage.getItem('sabbathPlan') || '{}');
+            const sabbathDay = plan.day || 'saturday';
+            
+            const today = new Date();
+            const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const targetDay = daysOfWeek.indexOf(sabbathDay);
+            
+            let daysUntilSabbath = (targetDay - today.getDay() + 7) % 7;
+            if (daysUntilSabbath === 0) daysUntilSabbath = 7; // Next week if today is Sabbath
+            
+            const nextSabbath = new Date(today);
+            nextSabbath.setDate(today.getDate() + daysUntilSabbath);
+            
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            document.getElementById('next-sabbath-date').textContent = nextSabbath.toLocaleDateString('en-US', options);
+        }
+
+        // Initialize next Sabbath date
+        updateNextSabbathDate();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9833b1e0c3b0bd12',t:'MTc1ODU2Mzk1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
